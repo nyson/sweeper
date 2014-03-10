@@ -17,6 +17,7 @@ var Board = function(w, h, m, canvas) {
 	"width": w,
 	"height": h, 
 	"mines": m,
+	"overlay": true,
 	"canvas": "canvas"
     }
 
@@ -40,9 +41,19 @@ Board.prototype.newGame = function() {
     this.findAdjacents();
 
     this.drawGrid();
-    this.drawBoxes(true);
+    this.drawBoxes();
 }
 
+Board.prototype.firstMove = function() {
+    for(var i = 0; i < this.settings.height; i++) {
+	for(var j = 0; j < this.settings.width; j++) {
+	    if(!this.overlay[i][j]) {
+		return false;
+	    }
+	}
+    }
+    return true;
+}
 /**
  * Generates an overlay
  */
@@ -206,7 +217,13 @@ Board.prototype.loseCondition = function() {
  * WARNING: currently NOT checking if the tile exists
  */ 
 Board.prototype.flip = function (x,y) {
+    if(this.board[x][y] < 0 && this.firstMove()) {
+	this.newGame();
+	return this.flip(x,y);
+    }
     var p = {"x": x, "y": y};
+
+
     var as = [];
     while(p != undefined) {
 	if(this.board[p.x][p.y] == 0 && this.overlay[p.x][p.y]) {
@@ -285,19 +302,18 @@ Board.prototype.drawGrid = function(){
  */
 Board.prototype.drawBoxes = function (hideOverlay){
     var c = this.getCtx();
-
     for(var i = 0; i < this.settings.height; i++) {
 	for(var j = 0; j < this.settings.width; j++) {
 	    c.fillStyle = "rgba(0,0,255, 0.3)";
 	    c.font = "bold 20px verdana";
 	    
-	    if(this.overlay[i][j]) {
+	    if(this.overlay[i][j] && this.overlay) {
 	    	c.fillRect(j*20 + 1, i*20 + 1, 19, 19);
-	    }
 
-	    c.fillStyle = "black";
-	    if(this.board[i][j] < 0) {
-		c.fillText("B", j*20 + 3, i*20 + 17, 15);
+	    } else if(this.board[i][j] < 0) {
+		c.fillStyle = "black";
+		c.fillText("#", j*20 + 3, i*20 + 17, 15);
+
 	    } else if (this.board[i][j] > 0){
 		switch(this.board[i][j]) {
 		    case 1: c.fillStyle = "blue"; break;
