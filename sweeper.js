@@ -16,7 +16,11 @@ var Board = function(w, h, m, canvas) {
 	"canvas": "canvas"
     }
 
-    
+    if(this.getCtx() === null) {
+	console.debug("'" + this.settings.canvas + "'"
+		      + " isn't a valid canvas element");
+    }
+
     this.generateBoard();
     this.generateOverlay();
     this.findAdjacents();
@@ -201,9 +205,7 @@ Board.prototype.flip = function (x,y) {
 Board.prototype.getCtx = function(){
     var canvas = document.getElementById(this.settings.canvas);
     if(canvas === null || canvas.getContext === undefined) {
-	alert("Canvas element '"+this.settings.canvas+"' not found!\n"
-	     + "(are you calling this from onload context?)");
-	return;
+	return null;
     } 
     return canvas.getContext("2d");
 }
