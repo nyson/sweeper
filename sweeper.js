@@ -1,3 +1,7 @@
+var board;
+
+// board ---------------------------------------------------------------------
+
 /**
  * creates a board
  *
@@ -19,18 +23,25 @@ var Board = function(w, h, m, canvas) {
     if(this.getCtx() === null) {
 	console.debug("'" + this.settings.canvas + "'"
 		      + " isn't a valid canvas element");
+	return;
     }
+    
+    bindEvents(this.settings.canvas);
+    this.newGame();
+}
 
+
+/**
+ * Starts a new game
+ */
+Board.prototype.newGame = function() {
     this.generateBoard();
     this.generateOverlay();
     this.findAdjacents();
 
-    this.printOverlay();
-    this.printBoard();
     this.drawGrid();
     this.drawBoxes(true);
 }
-
 
 /**
  * Generates an overlay
@@ -193,10 +204,48 @@ Board.prototype.loseCondition = function() {
  * Flips a tile on the board
  */ 
 Board.prototype.flip = function (x,y) {
-    if(this.overlay[x] === undefined || this.overlay[x][y]) {
+
+    var adj = function(x,y) {
+	return [
+	    {x: x-1, y: y-1},
+	    {x: x-1, y: y},
+	    {x: x-1, y: y+1},
+	    {x: x, y: y-1},
+	    {x: x, y: y+1},
+	    {x: x+1, y: y-1},
+	    {x: x+1, y: y},
+	    {x: x+1, y: y+1}
+	];
+    }
+
+    if(this.overlay[x] === undefined 
+       || !this.overlay[x][y]) {
 	return;
     }
-    this.overlay[x][y] = false;
+
+    var p = {"x": x, "y": y};
+    var as = [];
+    while(p != undefined) {
+	if(this.board[p.x][p.y] == 0 && this.overlay[p.x][p.y]) {
+	    var newAs = adj(p.x,p.y);
+
+	    for(var pos = newAs.pop(); pos != undefined; pos = newAs.pop()) {
+		
+		if(this.overlay[pos.x] != undefined
+		  && this.overlay[pos.x][pos.y] != undefined
+		  && this.overlay[pos.x][pos.y]) {
+		    as.push(pos);
+		}
+	    }
+	    console.debug(as);
+	}
+
+	this.overlay[p.x][p.y] = false;
+	
+	p = as.pop();
+    }
+
+    this.redraw();
 }
 
 /**
@@ -212,21 +261,31 @@ Board.prototype.getCtx = function(){
 
 
 /**
+ * redraws entire board
+ */ 
+Board.prototype.redraw = function (){
+    var c = this.getCtx();
+    c.clearRect(0, 0, this.settings.width*20, this.settings.height*20);
+    this.drawGrid();
+    this.drawBoxes();
+}
+
+/**
  * Draws the board grid
  */
 Board.prototype.drawGrid = function(){
     var line = function(context, x,y, x2,y2) {
-	context.beginPath();
+	
 	context.moveTo(x,y);
 	context.lineTo(x2,y2);
-	context.closePath();
-	context.stroke();
     }
 
     var c = this.getCtx();
+    
     c.strokeStyle = "black";
     c.lineWidth = 2;
-
+    c.beginPath();
+    
     for(var i = 0; i <= this.settings.height; i++) {
 	line(c, 0, i*20, this.settings.width*20, i*20);
     }
@@ -234,6 +293,9 @@ Board.prototype.drawGrid = function(){
     for(var i = 0; i <= this.settings.width; i++) {
 	line(c, i * 20, 0, i * 20, this.settings.height * 20);
     }
+    
+    c.closePath();
+    c.stroke();
 }
 
 /**
@@ -241,10 +303,11 @@ Board.prototype.drawGrid = function(){
  */
 Board.prototype.drawBoxes = function (hideOverlay){
     var c = this.getCtx();
+
     for(var i = 0; i < this.settings.height; i++) {
 	for(var j = 0; j < this.settings.width; j++) {
 	    c.fillStyle = "rgba(0,0,255, 0.1)";
-	    c.font = "20px arial";
+	    c.font = "bold 20px verdana";
 	    
 	    if(this.overlay[i][j]) {
 	    	c.fillRect(j*20 + 1, i*20 + 1, 19, 19);
@@ -258,19 +321,59 @@ Board.prototype.drawBoxes = function (hideOverlay){
 		    case 1: c.fillStyle = "blue"; break;
 		    case 2: c.fillStyle = "green"; break;
 		    case 3: c.fillStyle = "red"; break;
-		    case 4: c.fillStyle = "darkblue"; break;
-		    case 5: c.fillStyle = "magenta"; break;
-		    case 6: c.fillStyle = "cyan"; break;
+		    case 4: c.fillStyle = "purple"; break;
+		    case 5: c.fillStyle = "maroon"; break;
+		    case 6: c.fillStyle = "turquoise"; break;
 		    case 7: c.fillStyle = "black"; break;
-		    case 8: c.fillStyle = "pink"; break;
+		    case 8: c.fillStyle = "gray"; break;
 		}
 		c.fillText(this.board[i][j], j*20 + 3, i*20 + 17, 15);
 	    }
-
 	}
     }
 }
+// Helpers -------------------------------------------------------------------
+/**
+ * Fetches mouse position in the current context from an event
+ */
+getPos = function (e) {
+    return {
+	y: Math.floor((e.pageX - e.target.offsetLeft) / 20), 
+	x: Math.floor((e.pageY - e.target.offsetTop) / 20)
+    };
+}
+var events = {
+    mouseout: function (e) {
+	var p = getPos(e);
+	console.debug("mouseout: ", p);
+    },
+    mousemove: function (e){
+	var p = getPos(e);
+	//console.debug("mouseover: ", p);
+    },
+    click: function(e) {
+	e.preventDefault();
+	var p = getPos(e);
+	console.debug("click: ", p);
+	board.flip(p.x, p.y);
+    }
+}
+
+
+
+// events --------------------------------------------------------------------
+bindEvents = function(canvas){
+    var c = document.getElementById(canvas);
+    c.onclick = events.click;
+    c.onmousemove = events.mousemove;
+    c.onmouseout = events.mouseout;   
+
+}
+
+
+// main ----------------------------------------------------------------------
+
 
 window.onload = function() {
-    b = new Board(30, 16, 99, can);
+    board = new Board(30, 16, 99, "canvas");
 }
