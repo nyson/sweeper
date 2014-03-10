@@ -202,32 +202,15 @@ Board.prototype.loseCondition = function() {
 
 /**
  * Flips a tile on the board
+ *
+ * WARNING: currently NOT checking if the tile exists
  */ 
 Board.prototype.flip = function (x,y) {
-
-    var adj = function(x,y) {
-	return [
-	    {x: x-1, y: y-1},
-	    {x: x-1, y: y},
-	    {x: x-1, y: y+1},
-	    {x: x, y: y-1},
-	    {x: x, y: y+1},
-	    {x: x+1, y: y-1},
-	    {x: x+1, y: y},
-	    {x: x+1, y: y+1}
-	];
-    }
-
-    if(this.overlay[x] === undefined 
-       || !this.overlay[x][y]) {
-	return;
-    }
-
     var p = {"x": x, "y": y};
     var as = [];
     while(p != undefined) {
 	if(this.board[p.x][p.y] == 0 && this.overlay[p.x][p.y]) {
-	    var newAs = adj(p.x,p.y);
+	    var newAs = adjacent(p.x,p.y);
 
 	    for(var pos = newAs.pop(); pos != undefined; pos = newAs.pop()) {
 		
@@ -241,7 +224,6 @@ Board.prototype.flip = function (x,y) {
 	}
 
 	this.overlay[p.x][p.y] = false;
-	
 	p = as.pop();
     }
 
@@ -306,7 +288,7 @@ Board.prototype.drawBoxes = function (hideOverlay){
 
     for(var i = 0; i < this.settings.height; i++) {
 	for(var j = 0; j < this.settings.width; j++) {
-	    c.fillStyle = "rgba(0,0,255, 0.1)";
+	    c.fillStyle = "rgba(0,0,255, 0.3)";
 	    c.font = "bold 20px verdana";
 	    
 	    if(this.overlay[i][j]) {
@@ -336,12 +318,28 @@ Board.prototype.drawBoxes = function (hideOverlay){
 /**
  * Fetches mouse position in the current context from an event
  */
-getPos = function (e) {
+var getPos = function (e) {
     return {
 	y: Math.floor((e.pageX - e.target.offsetLeft) / 20), 
 	x: Math.floor((e.pageY - e.target.offsetTop) / 20)
     };
 }
+
+/**
+ * Finds all eight tiles adjacent to, but not including, [x][y]
+ */
+var adjacent = function (x,y) {
+    return [{x: x-1, y: y-1},
+	    {x: x-1, y: y},
+	    {x: x-1, y: y+1},
+	    {x: x,   y: y-1},
+	    {x: x,   y: y+1},
+	    {x: x+1, y: y-1},
+	    {x: x+1, y: y},
+	    {x: x+1, y: y+1}];
+}
+
+// events --------------------------------------------------------------------
 var events = {
     mouseout: function (e) {
 	var p = getPos(e);
@@ -359,9 +357,6 @@ var events = {
     }
 }
 
-
-
-// events --------------------------------------------------------------------
 bindEvents = function(canvas){
     var c = document.getElementById(canvas);
     c.onclick = events.click;
