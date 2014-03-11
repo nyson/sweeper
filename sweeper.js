@@ -221,9 +221,9 @@ Board.prototype.flip = function (x,y) {
 	this.newGame();
 	return this.flip(x,y);
     }
+
+    
     var p = {"x": x, "y": y};
-
-
     var as = [];
     while(p != undefined) {
 	if(this.board[p.x][p.y] == 0 && this.overlay[p.x][p.y]) {
@@ -237,7 +237,6 @@ Board.prototype.flip = function (x,y) {
 		    as.push(pos);
 		}
 	    }
-	    console.debug(as);
 	}
 
 	this.overlay[p.x][p.y] = false;
@@ -359,18 +358,15 @@ var adjacent = function (x,y) {
 var events = {
     mouseout: function (e) {
 	var p = getPos(e);
-	console.debug("mouseout: ", p);
     },
     mousemove: function (e){
 	var p = getPos(e);
-	//console.debug("mouseover: ", p);
     },
     click: function(e) {
 	e.preventDefault();
 	var p = getPos(e);
-	console.debug("click: ", p);
 	board.flip(p.x, p.y);
-    }
+    } 
 }
 
 bindEvents = function(canvas){
@@ -381,9 +377,7 @@ bindEvents = function(canvas){
 
 }
 
-
 // main ----------------------------------------------------------------------
-
 
 window.onload = function() {
     board = new Board(30, 16, 99, "canvas");
