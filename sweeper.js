@@ -139,9 +139,7 @@ var Board = function(w, h, m, canvas) {
 		    var as = adj(i,j);
 		    for(k in as) {
 			var p = as[k];
-			if(!(this.board[p.x] === undefined
-			     || this.board[p.x][p.y] === undefined)
-			   && this.board[p.x][p.y] === MINE) {
+			if(this.board[p.x][p.y] === MINE) {
 			    this.board[i][j]++;
 			}
 		    }
@@ -151,7 +149,7 @@ var Board = function(w, h, m, canvas) {
     }
 
     /**
-     * prints  to console
+     * prints board to console
      */ 
     Board.prototype.printBoard = function() {
 	var b = [];
@@ -168,8 +166,7 @@ var Board = function(w, h, m, canvas) {
 	    b[i] = b[i].join(" ")
 	}
 
-	b = b.join("\n");
-	console.debug(b);
+	console.debug(b.join("\n"));
     }
 
     /**
@@ -198,8 +195,7 @@ var Board = function(w, h, m, canvas) {
 	    b[i] = b[i].join(" ")
 	}
 
-	b = b.join("\n");
-	console.debug(b);
+	console.debug(b.join("\n"));
     }
 
     /**
@@ -252,6 +248,7 @@ var Board = function(w, h, m, canvas) {
      * WARNING: currently NOT checking if the tile exists
      */ 
     Board.prototype.flip = function (x,y) {
+	// doesn't work anymore; WHYYYYYYY 
 	if(this.board[x][y] === MINE && this.firstMove()) {
 	    this.newGame();
 	    return this.flip(x,y);
@@ -268,9 +265,6 @@ var Board = function(w, h, m, canvas) {
 	    var as = adjacent(x,y);
 	    var nearFlags = 0;
 	    for(i in as) {
- 		if(!exists(as[i])) {
-		    continue;
-		}
 		if(this.overlay[as[i].x][as[i].y] === FLAG) {
 		    nearFlags++;
 		}
@@ -278,8 +272,7 @@ var Board = function(w, h, m, canvas) {
 	    
 	    if(nearFlags === this.board[x][y]) {
 		for(i in as) {
-		    if(exists(as[i])
-		       && this.overlay[as[i].x][as[i].y] === HIDDEN) {
+		    if(this.overlay[as[i].x][as[i].y] === HIDDEN) {
 			this.flip(as[i].x, as[i].y);
 		    }
 		}
@@ -293,10 +286,7 @@ var Board = function(w, h, m, canvas) {
 		var newAs = adjacent(p.x,p.y);
 
 		for(var pos = newAs.pop(); pos != undefined; pos = newAs.pop()) {
-		    
-		    if(this.overlay[pos.x] != undefined
-		       && this.overlay[pos.x][pos.y] != undefined
-		       && this.overlay[pos.x][pos.y] === HIDDEN) {
+		    if(this.overlay[pos.x][pos.y] === HIDDEN) {
 			as.push(pos);
 		    }
 		}
@@ -369,8 +359,6 @@ var Board = function(w, h, m, canvas) {
 		c.fillStyle = "rgba(0,0,255, 0.3)";
 		c.font = "bold 20px verdana";
 		
-		// what did I mean by this
-		//   if(this.overlay[i][j] && this.overlay)
 		if(this.overlay[i][j] !== VISIBLE) {
 	    	    c.fillRect(j*20 + 1, i*20 + 1, 19, 19);
 		    if(this.overlay[i][j] === FLAG) {
