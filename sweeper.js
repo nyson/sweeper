@@ -62,7 +62,7 @@ var Board = function(w, h, m, canvas) {
     Board.prototype.firstMove = function() {
 	for(var i = 0; i < settings.height; i++) {
 	    for(var j = 0; j < settings.width; j++) {
-		if(!this.overlay[i][j]) {
+		if(this.overlay[i][j] != HIDDEN) {
 		    return false;
 		}
 	    }
@@ -117,29 +117,15 @@ var Board = function(w, h, m, canvas) {
      * Finds adjacents mines to tiles
      */
     Board.prototype.findAdjacents = function() {
-	var adj = function(x,y) {
-	    return [
-		{x: x-1, y: y-1},
-		{x: x-1, y: y},
-		{x: x-1, y: y+1},
-		{x: x, y: y-1},
-		{x: x, y: y+1},
-		{x: x+1, y: y-1},
-		{x: x+1, y: y},
-		{x: x+1, y: y+1}
-	    ];
-	}
-
 	// todo: flip this so a mine increments it's neighbours, instead
 	// of we having to find mines adjacent
 	for(var i = 0; i < this.board.length; i++) {
 	    for(var j = 0; j < this.board[i].length; j++) {
 
 		if(this.board[i][j] >= 0) {
-		    var as = adj(i,j);
+		    var as = adjacent(i,j);
 		    for(k in as) {
-			var p = as[k];
-			if(this.board[p.x][p.y] === MINE) {
+			if(this.board[as[k].x][as[k].y] === MINE) {
 			    this.board[i][j]++;
 			}
 		    }
@@ -232,7 +218,9 @@ var Board = function(w, h, m, canvas) {
 	return true;
     }
     
-
+    /**
+     * Flags an overlay for indicating the prescence of a DANGEROUS MINE!
+     */
     Board.prototype.flag = function(x,y) {
 	if(this.overlay[x][y] === HIDDEN) {
 	    this.overlay[x][y] = FLAG;
@@ -242,25 +230,23 @@ var Board = function(w, h, m, canvas) {
 
 	this.redraw();
     }
+    
+
     /**
      * Flips a tile on the board
-     *
-     * WARNING: currently NOT checking if the tile exists
      */ 
     Board.prototype.flip = function (x,y) {
-	// doesn't work anymore; WHYYYYYYY 
+	todo: divide and conquer into specialised parts for 
+	    overlay.VISIBLE and overlay.HIDDEN
 	if(this.board[x][y] === MINE && this.firstMove()) {
 	    this.newGame();
 	    return this.flip(x,y);
-	}
+	} 
 
-	// can't flip flags!
 	if(this.overlay[x][y] === FLAG) {
 	    return;
 	}
 	
-
-	// broken near edges
 	if(this.overlay[x][y] === VISIBLE) {
 	    var as = adjacent(x,y);
 	    var nearFlags = 0;
@@ -325,24 +311,23 @@ var Board = function(w, h, m, canvas) {
      * Draws the board grid
      */
     Board.prototype.drawGrid = function(){
-	var line = function(context, x,y, x2,y2) {
-	    
-	    context.moveTo(x,y);
-	    context.lineTo(x2,y2);
+	var c = this.getCtx();
+	var line = function(x,y, x2,y2) {
+	    c.moveTo(x,y);
+	    c.lineTo(x2,y2);
 	}
 
-	var c = this.getCtx();
 	
 	c.strokeStyle = "black";
 	c.lineWidth = 2;
 	c.beginPath();
 	
 	for(var i = 0; i <= settings.height; i++) {
-	    line(c, 0, i*20, settings.width*20, i*20);
+	    line(0, i*20, settings.width*20, i*20);
 	}
 
 	for(var i = 0; i <= settings.width; i++) {
-	    line(c, i * 20, 0, i * 20, settings.height * 20);
+	    line(i * 20, 0, i * 20, settings.height * 20);
 	}
 	
 	c.closePath();
