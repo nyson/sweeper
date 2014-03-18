@@ -1,5 +1,5 @@
 /**
- * 
+ * Simple 
  */
 
 var board;
@@ -22,16 +22,19 @@ var Board = function(w, h, m, canvas) {
 	"height": h, 
 	"mines": m,
 	"overlay": true,
-	"canvas": "canvas"
+	"canvas": canvas
     }
+    
+    var firstMove = true;
 
+    // overlay values
     const HIDDEN = 0;
     const VISIBLE = 1;
     const FLAG = 2;
-
+    
+    // board values
     const MINE = -1;
     const CLEAR = 0;
-
 
     Board.prototype.construct = function() {
 	if(this.getCtx() === null) {
@@ -51,24 +54,14 @@ var Board = function(w, h, m, canvas) {
      * Starts a new game
      */
     Board.prototype.newGame = function() {
+	firstMove = true;
 	this.generateBoard();
 	this.generateOverlay();
 	this.findAdjacents();
 
-	this.drawGrid();
-	this.drawBoxes();
+	this.redraw();
     }
 
-    Board.prototype.firstMove = function() {
-	for(var i = 0; i < settings.height; i++) {
-	    for(var j = 0; j < settings.width; j++) {
-		if(this.overlay[i][j] != HIDDEN) {
-		    return false;
-		}
-	    }
-	}
-	return true;
-    }
     /**
      * Generates an overlay
      */
@@ -215,7 +208,7 @@ var Board = function(w, h, m, canvas) {
 		}
 	    }
 	}
-	return true;
+	return false;
     }
     
     /**
@@ -231,39 +224,49 @@ var Board = function(w, h, m, canvas) {
 	this.redraw();
     }
     
+    Board.prototype.solve = function() {
+	for(var i = 0; i < settings.height; i++) {
+	    for(var j = 0; j < settings.width; j++) {
+		this.overlay[i][j] = this.board[i][j] === MINE 
+		    ? FLAG : VISIBLE;
+		
+	    }
+	}
 
-    /**
-     * Flips a tile on the board
-     */ 
-    Board.prototype.flip = function (x,y) {
-	todo: divide and conquer into specialised parts for 
-	    overlay.VISIBLE and overlay.HIDDEN
-	if(this.board[x][y] === MINE && this.firstMove()) {
+	this.redraw();
+    }
+
+
+    Board.prototype.gameRules = function() {
+	if(this.loseCondition()) {
+	    alert("You've lost!\nI'm starting a new game");
 	    this.newGame();
-	    return this.flip(x,y);
-	} 
+	} else if (this.winCondition()) {
+	    alert("You've won! Congratulations!\n"
+		  + "I'm starting a new game for you");
+	    this.newGame();
+	}
+    }
 
-	if(this.overlay[x][y] === FLAG) {
-	    return;
+    Board.prototype.flipVisible  = function (x,y) {
+	var as = adjacent(x,y);
+	var nearFlags = 0;
+	for(i in as) {
+	    if(this.overlay[as[i].x][as[i].y] === FLAG) {
+		nearFlags++;
+	    }
 	}
 	
-	if(this.overlay[x][y] === VISIBLE) {
-	    var as = adjacent(x,y);
-	    var nearFlags = 0;
+	if(nearFlags === this.board[x][y]) {
 	    for(i in as) {
-		if(this.overlay[as[i].x][as[i].y] === FLAG) {
-		    nearFlags++;
-		}
-	    }
-	    
-	    if(nearFlags === this.board[x][y]) {
-		for(i in as) {
-		    if(this.overlay[as[i].x][as[i].y] === HIDDEN) {
-			this.flip(as[i].x, as[i].y);
-		    }
+		if(this.overlay[as[i].x][as[i].y] === HIDDEN) {
+		    this.flip(as[i].x, as[i].y);
 		}
 	    }
 	}
+    }
+    
+    Board.prototype.flipHidden = function(x,y) {
 	var p = {"x": x, "y": y};
 	var as = [];
 	while(p != undefined) {
@@ -271,7 +274,8 @@ var Board = function(w, h, m, canvas) {
 	       && this.overlay[p.x][p.y] === HIDDEN) {
 		var newAs = adjacent(p.x,p.y);
 
-		for(var pos = newAs.pop(); pos != undefined; pos = newAs.pop()) {
+		for(var pos = newAs.pop(); pos != undefined; 
+		    pos = newAs.pop()) {
 		    if(this.overlay[pos.x][pos.y] === HIDDEN) {
 			as.push(pos);
 		    }
@@ -281,8 +285,31 @@ var Board = function(w, h, m, canvas) {
 	    this.overlay[p.x][p.y] = VISIBLE;
 	    p = as.pop();
 	}
+    }
 
+    /**
+     * Flips a tile on the board
+     */ 
+    Board.prototype.flip = function (x,y) {
+	if(this.board[x][y] === MINE && firstMove) {
+	    this.newGame();
+	    return this.flip(x,y);
+	} else {
+	    firstMove = false;
+	}
+
+	if(this.overlay[x][y] === FLAG) {
+	    return;
+	}
+	
+	if(this.overlay[x][y] === VISIBLE) {
+	    this.flipVisible(x,y);
+	} else if(this.overlay[x][y] === HIDDEN) {
+	    this.flipHidden(x,y);
+	}
+	
 	this.redraw();
+	this.gameRules();
     }
 
     /**
