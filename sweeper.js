@@ -26,6 +26,9 @@ var Board = function(w, h, m, canvas) {
     }
     
     var firstMove = true;
+    
+    // error
+    const OUT_OF_BOUNDS = -99;
 
     // overlay values
     const HIDDEN = 0;
@@ -272,7 +275,7 @@ var Board = function(w, h, m, canvas) {
 	while(p != undefined) {
 	    if(this.board[p.x][p.y] === CLEAR 
 	       && this.overlay[p.x][p.y] === HIDDEN) {
-		var newAs = adjacent(p.x,p.y);
+		var newAs = adjacent(p.x, p.y);
 
 		for(var pos = newAs.pop(); pos != undefined; 
 		    pos = newAs.pop()) {
@@ -425,7 +428,7 @@ var Board = function(w, h, m, canvas) {
 	    x: Math.floor((e.pageY - e.target.offsetTop) / 20)
 	};
     }
-
+    
     /**
      * Finds all eight tiles adjacent to, but not including, [x][y]
      */
@@ -443,10 +446,9 @@ var Board = function(w, h, m, canvas) {
 	
 	for(i in ps) {
 	    if(exists(ps[i])) {
-		existing[i] = ps[i];
-	    }
+		existing.push(ps[i]);
+	    } 
 	}
-	
 	return existing;
     }
 
