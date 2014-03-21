@@ -422,7 +422,7 @@ var Board = function(w, h, m, canvas) {
     /**
      * Fetches mouse position in the current context from an event
      */
-    var getPos = function (e) {
+    var getMousePos = function (e) {
 	return {
 	    y: Math.floor((e.pageX - e.target.offsetLeft) / 20), 
 	    x: Math.floor((e.pageY - e.target.offsetTop) / 20)
@@ -430,41 +430,41 @@ var Board = function(w, h, m, canvas) {
     }
     
     /**
-     * Finds all eight tiles adjacent to, but not including, [x][y]
+     * Creates a positional object
+     */ 
+    var pos = function(x,y) {return {'x':x, 'y':y};}
+
+    /**
+     * Finds all eight tiles adjacent to, but not including, (x,y)
      */
     var adjacent = function (x,y) {
-	var ps = [{x: x-1, y: y-1},
-		{x: x-1, y: y},
-		{x: x-1, y: y+1},
-		{x: x,   y: y-1},
-		{x: x,   y: y+1},
-		{x: x+1, y: y-1},
-		{x: x+1, y: y},
-		{x: x+1, y: y+1}];
-
 	var existing = [];
-	
+	var ps = [{x: x-1, y: y-1}, {x: x-1, y: y}, {x: x-1, y: y+1},
+		{x: x,   y: y-1}, {x: x,   y: y+1},
+		{x: x+1, y: y-1}, {x: x+1, y: y}, {x: x+1, y: y+1}];
+
 	for(i in ps) {
 	    if(exists(ps[i])) {
 		existing.push(ps[i]);
 	    } 
 	}
+
 	return existing;
     }
 
     // events --------------------------------------------------------------------
     var events = {
 	mouseout: function (e) {
-	    var p = getPos(e);
+	    var p = getMousePos(e);
 	},
 	mousemove: function (e){
-	    var p = getPos(e);
+	    var p = getMousePos(e);
 	},
 	click: function(e) {
-	    var p = getPos(e);
+	    var p = getMousePos(e);
 	    switch (event.button) {
 	    case 2: 
-		var p = getPos(e);
+		var p = getMousePos(e);
 		board.flag(p.x, p.y);
 		break;
 	    case 0:
