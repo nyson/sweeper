@@ -25,21 +25,21 @@ var Board = function(w, h, m, canvas) {
 	"canvas": canvas
     };
     
-    var firstMove = true;
-    
-    // error
-    var OUT_OF_BOUNDS = -99;
-
-    // overlay values
-    var HIDDEN = 0;
-    var VISIBLE = 1;
-    var FLAG = 2;
-    
-    // board values
-    var MINE = -1;
-    var CLEAR = 0;
-
     Board.prototype.construct = function() {
+	this.firstMove = true;
+	
+	// error
+	this.OUT_OF_BOUNDS = -99;
+
+	// overlay values
+	this.HIDDEN = 0;
+	this.VISIBLE = 1;
+	this.FLAG = 2;
+	
+	// board values
+	this.MINE = -1;
+	this.CLEAR = 0;
+	
 	if(this.getCtx() === null) {
 	    console.debug("'" + settings.canvas + "'" + 
 			  " isn't a valid canvas element");
@@ -73,7 +73,7 @@ var Board = function(w, h, m, canvas) {
 	for(var i = 0; i < settings.height; i++) {
 	    o[i] = [];
 	    for(var j = 0; j < settings.width; j++) {
-		o[i][j] = HIDDEN;
+		o[i][j] = this.HIDDEN;
 	    }
 	}
 
@@ -91,9 +91,9 @@ var Board = function(w, h, m, canvas) {
 	for(var i = 0; 
 	    i < settings.width * settings.height; i++) {
 	    if(m > 0) {
-		blocks.push(MINE);
+		blocks.push(this.MINE);
 	    } else {
-		blocks.push(CLEAR);
+		blocks.push(this.CLEAR);
 	    }
 	    m--;
 	}
@@ -121,7 +121,7 @@ var Board = function(w, h, m, canvas) {
 		if(this.board[i][j] >= 0) {
 		    var as = adjacent(i,j);
 		    for(var k in as) {
-			if(this.board[as[k].x][as[k].y] === MINE) {
+			if(this.board[as[k].x][as[k].y] === this.MINE) {
 			    this.board[i][j]++;
 			}
 		    }
@@ -138,7 +138,7 @@ var Board = function(w, h, m, canvas) {
 	for(var i in this.board) {
 	    b[i] = [];
 	    for (var j in this.board[i]) {
-		if(this.board[i][j] === MINE) {
+		if(this.board[i][j] === this.MINE) {
 		    b[i][j] = "*";
 		} else {
 		    b[i][j] = this.board[i][j];
@@ -160,15 +160,15 @@ var Board = function(w, h, m, canvas) {
 	    b[i] = [];
 	    for (var j in this.overlay[i]) {
 		switch(this.overlay[i][j]) {
-		case HIDDEN:
+		case this.HIDDEN:
 		    b[i][j] = "#";
 		    break;
 
-		case VISIBLE: 
+		case this.VISIBLE: 
 		    b[i][j] = " ";
 		    break;
 		    
-		case FLAG:
+		case this.FLAG:
 		    b[i][j] = "F";
 		    break;
 		    
@@ -190,7 +190,7 @@ var Board = function(w, h, m, canvas) {
 	
 	for(var i = 0; i < this.overlay.length; i++) {
 	    for(var j = 0; j < this.overlay[i].length; j++) {
-		if(this.overlay[i][j] === HIDDEN && 
+		if(this.overlay[i][j] === this.HIDDEN && 
 		   this.board[i][j] >= 0) {
 		    return false;
 		}
@@ -205,8 +205,8 @@ var Board = function(w, h, m, canvas) {
     Board.prototype.loseCondition = function() {
 	for(var i = 0; i < settings.height; i++) {
 	    for(var j = 0; j < settings.width; j++) {
-		if(this.overlay[i][j] === VISIBLE && 
-		   this.board[i][j] === MINE) {
+		if(this.overlay[i][j] === this.VISIBLE && 
+		   this.board[i][j] === this.MINE) {
 		    return true;
 		}
 	    }
@@ -218,10 +218,10 @@ var Board = function(w, h, m, canvas) {
      * Flags an overlay for indicating the prescence of a DANGEROUS MINE!
      */
     Board.prototype.flag = function(x,y) {
-	if(this.overlay[x][y] === HIDDEN) {
-	    this.overlay[x][y] = FLAG;
-	} else if(this.overlay[x][y] === FLAG) {
-	    this.overlay[x][y] = HIDDEN;
+	if(this.overlay[x][y] === this.HIDDEN) {
+	    this.overlay[x][y] = this.FLAG;
+	} else if(this.overlay[x][y] === this.FLAG) {
+	    this.overlay[x][y] = this.HIDDEN;
 	}
 
 	this.redraw();
@@ -231,7 +231,7 @@ var Board = function(w, h, m, canvas) {
 	for(var i = 0; i < settings.height; i++) {
 	    for(var j = 0; j < settings.width; j++) {
 		this.overlay[i][j] = 
-		    this.board[i][j] === MINE ? FLAG : VISIBLE;
+		    this.board[i][j] === this.MINE ? this.FLAG : this.VISIBLE;
 		
 	    }
 	}
@@ -254,14 +254,14 @@ var Board = function(w, h, m, canvas) {
 	var as = adjacent(x,y);
 	var nearFlags = 0;
 	for(var i in as) {
-	    if(this.overlay[as[i].x][as[i].y] === FLAG) {
+	    if(this.overlay[as[i].x][as[i].y] === this.FLAG) {
 		nearFlags++;
 	    }
 	}
 	
 	if(nearFlags === this.board[x][y]) {
 	    for(i in as) {
-		if(this.overlay[as[i].x][as[i].y] === HIDDEN) {
+		if(this.overlay[as[i].x][as[i].y] === this.HIDDEN) {
 		    this.flip(as[i].x, as[i].y);
 		}
 	    }
@@ -272,19 +272,19 @@ var Board = function(w, h, m, canvas) {
 	var p = {"x": x, "y": y};
 	var as = [];
 	while(p !== undefined) {
-	    if(this.board[p.x][p.y] === CLEAR && 
-	       this.overlay[p.x][p.y] === HIDDEN) {
+	    if(this.board[p.x][p.y] === this.CLEAR && 
+	       this.overlay[p.x][p.y] === this.HIDDEN) {
 		var newAs = adjacent(p.x, p.y);
 
 		for(var pos = newAs.pop(); pos !== undefined; 
 		    pos = newAs.pop()) {
-		    if(this.overlay[pos.x][pos.y] === HIDDEN) {
+		    if(this.overlay[pos.x][pos.y] === this.HIDDEN) {
 			as.push(pos);
 		    }
 		}
 	    }
 
-	    this.overlay[p.x][p.y] = VISIBLE;
+	    this.overlay[p.x][p.y] = this.VISIBLE;
 	    p = as.pop();
 	}
     };
@@ -293,20 +293,20 @@ var Board = function(w, h, m, canvas) {
      * Flips a tile on the board
      */ 
     Board.prototype.flip = function (x,y) {
-	if(this.board[x][y] === MINE && firstMove) {
+	if(this.board[x][y] === this.MINE && this.firstMove) {
 	    this.newGame();
 	    return this.flip(x,y);
 	} else {
 	    firstMove = false;
 	}
 
-	if(this.overlay[x][y] === FLAG) {
+	if(this.overlay[x][y] === this.FLAG) {
 	    return;
 	}
 	
-	if(this.overlay[x][y] === VISIBLE) {
+	if(this.overlay[x][y] === this.VISIBLE) {
 	    this.flipVisible(x,y);
-	} else if(this.overlay[x][y] === HIDDEN) {
+	} else if(this.overlay[x][y] === this.HIDDEN) {
 	    this.flipHidden(x,y);
 	}
 	
@@ -373,14 +373,14 @@ var Board = function(w, h, m, canvas) {
 		c.fillStyle = "rgba(0,0,255, 0.3)";
 		c.font = "bold 20px verdana";
 		
-		if(this.overlay[i][j] !== VISIBLE) {
+		if(this.overlay[i][j] !== this.VISIBLE) {
 	    	    c.fillRect(j*20 + 1, i*20 + 1, 19, 19);
-		    if(this.overlay[i][j] === FLAG) {
+		    if(this.overlay[i][j] === this.FLAG) {
 			c.fillStyle = "red";
 			c.fillText("F", j*20 + 3, i*20 + 17, 15);
 		    }
 
-		} else if(this.board[i][j] === MINE) {
+		} else if(this.board[i][j] === this.MINE) {
 		    c.fillStyle = "black";
 		    c.fillText("#", j*20 + 3, i*20 + 17, 15);
 
