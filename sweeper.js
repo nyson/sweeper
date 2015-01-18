@@ -40,7 +40,7 @@ var Board = function(w, h, m, canvas) {
 	this.MINE = -1;
 	this.CLEAR = 0;
 	
-	if(this.getCtx() === null) {
+	if(this.getCtx() === null) {	    
 	    console.debug("'" + settings.canvas + "'" + 
 			  " isn't a valid canvas element");
 	    return;
@@ -147,8 +147,6 @@ var Board = function(w, h, m, canvas) {
 	    }
 	    b[i] = b[i].join(" ");
 	}
-
-	console.debug(b.join("\n"));
     };
 
     /**
@@ -176,8 +174,6 @@ var Board = function(w, h, m, canvas) {
 	    }
 	    b[i] = b[i].join(" ");
 	}
-
-	console.debug(b.join("\n"));
     };
 
     /**
@@ -239,10 +235,14 @@ var Board = function(w, h, m, canvas) {
 	this.redraw();
     };
 
+    /**
+     * Reads the board and makes a rule decision based on current state
+     */
     Board.prototype.gameRules = function() {
 	if(this.loseCondition()) {
 	    alert("You've lost!\nI'm starting a new game");
 	    this.newGame();
+
 	} else if (this.winCondition()) {
 	    alert("You've won! Congratulations!\n" + 
 		  "I'm starting a new game for you");
@@ -250,6 +250,10 @@ var Board = function(w, h, m, canvas) {
 	}
     };
 
+    /**
+     * Flips up to 8 adjacent tiles (horizontally, vertically and diagonally)
+     * from a center tile
+     */
     Board.prototype.flipVisible  = function (x,y) {
 	var as = adjacent(x,y);
 	var nearFlags = 0;
@@ -267,7 +271,10 @@ var Board = function(w, h, m, canvas) {
 	    }
 	}
     };
-    
+
+    /**
+     * Flips a tile that has not yet been revealed
+     */
     Board.prototype.flipHidden = function(x,y) {
 	var p = {"x": x, "y": y};
 	var as = [];
@@ -275,7 +282,7 @@ var Board = function(w, h, m, canvas) {
 	    if(this.board[p.x][p.y] === this.CLEAR && 
 	       this.overlay[p.x][p.y] === this.HIDDEN) {
 		var newAs = adjacent(p.x, p.y);
-
+		
 		for(var pos = newAs.pop(); pos !== undefined; 
 		    pos = newAs.pop()) {
 		    if(this.overlay[pos.x][pos.y] === this.HIDDEN) {
@@ -296,8 +303,9 @@ var Board = function(w, h, m, canvas) {
 	if(this.board[x][y] === this.MINE && this.firstMove) {
 	    this.newGame();
 	    return this.flip(x,y);
+
 	} else {
-	    firstMove = false;
+	    this.firstMove = false;
 	}
 
 	if(this.overlay[x][y] === this.FLAG) {
