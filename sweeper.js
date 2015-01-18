@@ -23,32 +23,32 @@ var Board = function(w, h, m, canvas) {
 	"mines": m,
 	"overlay": true,
 	"canvas": canvas
-    }
+    };
     
     var firstMove = true;
     
     // error
-    const OUT_OF_BOUNDS = -99;
+    var OUT_OF_BOUNDS = -99;
 
     // overlay values
-    const HIDDEN = 0;
-    const VISIBLE = 1;
-    const FLAG = 2;
+    var HIDDEN = 0;
+    var VISIBLE = 1;
+    var FLAG = 2;
     
     // board values
-    const MINE = -1;
-    const CLEAR = 0;
+    var MINE = -1;
+    var CLEAR = 0;
 
     Board.prototype.construct = function() {
 	if(this.getCtx() === null) {
-	    console.debug("'" + settings.canvas + "'"
-			  + " isn't a valid canvas element");
+	    console.debug("'" + settings.canvas + "'" + 
+			  " isn't a valid canvas element");
 	    return;
 	}
 	
 	bindEvents(settings.canvas);
 	this.newGame();
-    }
+    };
 
 
 // methods -------------------------------------------------------------------    
@@ -63,7 +63,7 @@ var Board = function(w, h, m, canvas) {
 	this.findAdjacents();
 
 	this.redraw();
-    }
+    };
 
     /**
      * Generates an overlay
@@ -78,7 +78,7 @@ var Board = function(w, h, m, canvas) {
 	}
 
 	this.overlay = o;
-    }
+    };
 
     /**
      * Generates a board with mines 
@@ -99,15 +99,15 @@ var Board = function(w, h, m, canvas) {
 	}
 
 
-	for(var i = 0; i < settings.height; i++) {
+	for(i = 0; i < settings.height; i++) {
 	    board[i] = [];
 	    for(var j = 0; j < settings.width; j++) {
-		board[i][j] 
-		    = blocks.splice(Math.random() * blocks.length, 1)[0];
+		board[i][j] = 
+		    blocks.splice(Math.random() * blocks.length, 1)[0];
 	    }
 	}
 	this.board = board;
-    }
+    };
 
     /**
      * Finds adjacents mines to tiles
@@ -120,7 +120,7 @@ var Board = function(w, h, m, canvas) {
 
 		if(this.board[i][j] >= 0) {
 		    var as = adjacent(i,j);
-		    for(k in as) {
+		    for(var k in as) {
 			if(this.board[as[k].x][as[k].y] === MINE) {
 			    this.board[i][j]++;
 			}
@@ -128,16 +128,16 @@ var Board = function(w, h, m, canvas) {
 		}
 	    }
 	}
-    }
+    };
 
     /**
      * prints board to console
      */ 
     Board.prototype.printBoard = function() {
 	var b = [];
-	for(i in this.board) {
+	for(var i in this.board) {
 	    b[i] = [];
-	    for (j in this.board[i]) {
+	    for (var j in this.board[i]) {
 		if(this.board[i][j] === MINE) {
 		    b[i][j] = "*";
 		} else {
@@ -145,20 +145,20 @@ var Board = function(w, h, m, canvas) {
 		}
 		
 	    }
-	    b[i] = b[i].join(" ")
+	    b[i] = b[i].join(" ");
 	}
 
 	console.debug(b.join("\n"));
-    }
+    };
 
     /**
      * prints overlay to console
      */
     Board.prototype.printOverlay = function () {
 	var b = [];
-	for(i in this.overlay) {
+	for(var i in this.overlay) {
 	    b[i] = [];
-	    for (j in this.overlay[i]) {
+	    for (var j in this.overlay[i]) {
 		switch(this.overlay[i][j]) {
 		case HIDDEN:
 		    b[i][j] = "#";
@@ -174,11 +174,11 @@ var Board = function(w, h, m, canvas) {
 		    
 		}
 	    }
-	    b[i] = b[i].join(" ")
+	    b[i] = b[i].join(" ");
 	}
 
 	console.debug(b.join("\n"));
-    }
+    };
 
     /**
      * returns true if we've won
@@ -190,14 +190,14 @@ var Board = function(w, h, m, canvas) {
 	
 	for(var i = 0; i < this.overlay.length; i++) {
 	    for(var j = 0; j < this.overlay[i].length; j++) {
-		if(this.overlay[i][j] === HIDDEN 
-		   && this.board[i][j] >= 0) {
+		if(this.overlay[i][j] === HIDDEN && 
+		   this.board[i][j] >= 0) {
 		    return false;
 		}
 	    }
 	}
 	return true;
-    }
+    };
 
     /** 
      * returns true if we've lost
@@ -205,14 +205,14 @@ var Board = function(w, h, m, canvas) {
     Board.prototype.loseCondition = function() {
 	for(var i = 0; i < settings.height; i++) {
 	    for(var j = 0; j < settings.width; j++) {
-		if(this.overlay[i][j] === VISIBLE 
-		   && this.board[i][j] === MINE) {
+		if(this.overlay[i][j] === VISIBLE && 
+		   this.board[i][j] === MINE) {
 		    return true;
 		}
 	    }
 	}
 	return false;
-    }
+    };
     
     /**
      * Flags an overlay for indicating the prescence of a DANGEROUS MINE!
@@ -225,36 +225,35 @@ var Board = function(w, h, m, canvas) {
 	}
 
 	this.redraw();
-    }
+    };
     
     Board.prototype.solve = function() {
 	for(var i = 0; i < settings.height; i++) {
 	    for(var j = 0; j < settings.width; j++) {
-		this.overlay[i][j] = this.board[i][j] === MINE 
-		    ? FLAG : VISIBLE;
+		this.overlay[i][j] = 
+		    this.board[i][j] === MINE ? FLAG : VISIBLE;
 		
 	    }
 	}
 
 	this.redraw();
-    }
-
+    };
 
     Board.prototype.gameRules = function() {
 	if(this.loseCondition()) {
 	    alert("You've lost!\nI'm starting a new game");
 	    this.newGame();
 	} else if (this.winCondition()) {
-	    alert("You've won! Congratulations!\n"
-		  + "I'm starting a new game for you");
+	    alert("You've won! Congratulations!\n" + 
+		  "I'm starting a new game for you");
 	    this.newGame();
 	}
-    }
+    };
 
     Board.prototype.flipVisible  = function (x,y) {
 	var as = adjacent(x,y);
 	var nearFlags = 0;
-	for(i in as) {
+	for(var i in as) {
 	    if(this.overlay[as[i].x][as[i].y] === FLAG) {
 		nearFlags++;
 	    }
@@ -267,17 +266,17 @@ var Board = function(w, h, m, canvas) {
 		}
 	    }
 	}
-    }
+    };
     
     Board.prototype.flipHidden = function(x,y) {
 	var p = {"x": x, "y": y};
 	var as = [];
-	while(p != undefined) {
-	    if(this.board[p.x][p.y] === CLEAR 
-	       && this.overlay[p.x][p.y] === HIDDEN) {
+	while(p !== undefined) {
+	    if(this.board[p.x][p.y] === CLEAR && 
+	       this.overlay[p.x][p.y] === HIDDEN) {
 		var newAs = adjacent(p.x, p.y);
 
-		for(var pos = newAs.pop(); pos != undefined; 
+		for(var pos = newAs.pop(); pos !== undefined; 
 		    pos = newAs.pop()) {
 		    if(this.overlay[pos.x][pos.y] === HIDDEN) {
 			as.push(pos);
@@ -288,7 +287,7 @@ var Board = function(w, h, m, canvas) {
 	    this.overlay[p.x][p.y] = VISIBLE;
 	    p = as.pop();
 	}
-    }
+    };
 
     /**
      * Flips a tile on the board
@@ -313,7 +312,7 @@ var Board = function(w, h, m, canvas) {
 	
 	this.redraw();
 	this.gameRules();
-    }
+    };
 
     /**
      * Returns the current canvas context
@@ -324,7 +323,7 @@ var Board = function(w, h, m, canvas) {
 	    return null;
 	} 
 	return canvas.getContext("2d");
-    }
+    };
 
 
     /**
@@ -335,7 +334,7 @@ var Board = function(w, h, m, canvas) {
 	c.clearRect(0, 0, settings.width*20, settings.height*20);
 	this.drawGrid();
 	this.drawBoxes();
-    }
+    };
 
     /**
      * Draws the board grid
@@ -345,7 +344,7 @@ var Board = function(w, h, m, canvas) {
 	var line = function(x,y, x2,y2) {
 	    c.moveTo(x,y);
 	    c.lineTo(x2,y2);
-	}
+	};
 
 	
 	c.strokeStyle = "black";
@@ -356,13 +355,13 @@ var Board = function(w, h, m, canvas) {
 	    line(0, i*20, settings.width*20, i*20);
 	}
 
-	for(var i = 0; i <= settings.width; i++) {
+	for(i = 0; i <= settings.width; i++) {
 	    line(i * 20, 0, i * 20, settings.height * 20);
 	}
 	
 	c.closePath();
 	c.stroke();
-    }
+    };
     
     /**
      * Draws boxes on the board
@@ -400,7 +399,8 @@ var Board = function(w, h, m, canvas) {
 		}
 	    }
 	}
-    }
+    };
+
     // Helpers -------------------------------------------------------------------
     var exists = function() {
 	if(arguments.length == 1) {
@@ -415,9 +415,9 @@ var Board = function(w, h, m, canvas) {
 	    return false;
 	}
 
-	return y >= 0 && y < settings.width
-	    && x >= 0 && x < settings.height;
-    }
+	return y >= 0 && y < settings.width && 
+	    x >= 0 && x < settings.height;
+    };
     
     /**
      * Fetches mouse position in the current context from an event
@@ -427,12 +427,12 @@ var Board = function(w, h, m, canvas) {
 	    y: Math.floor((e.pageX - e.target.offsetLeft) / 20), 
 	    x: Math.floor((e.pageY - e.target.offsetTop) / 20)
 	};
-    }
+    };
     
     /**
      * Creates a positional object
      */ 
-    var pos = function(x,y) {return {'x':x, 'y':y};}
+    var pos = function(x,y) {return {'x':x, 'y':y};};
 
     /**
      * Finds all eight tiles adjacent to, but not including, (x,y)
@@ -443,14 +443,14 @@ var Board = function(w, h, m, canvas) {
 		{x: x,   y: y-1}, {x: x,   y: y+1},
 		{x: x+1, y: y-1}, {x: x+1, y: y}, {x: x+1, y: y+1}];
 
-	for(i in ps) {
+	for(var i in ps) {
 	    if(exists(ps[i])) {
 		existing.push(ps[i]);
 	    } 
 	}
 
 	return existing;
-    }
+    };
 
     // events --------------------------------------------------------------------
     var events = {
@@ -464,7 +464,7 @@ var Board = function(w, h, m, canvas) {
 	    var p = getMousePos(e);
 	    switch (event.button) {
 	    case 2: 
-		var p = getMousePos(e);
+		p = getMousePos(e);
 		board.flag(p.x, p.y);
 		break;
 	    case 0:
@@ -473,22 +473,22 @@ var Board = function(w, h, m, canvas) {
 		break;
 	    } 
 	}
-    }
+    };
 	
     bindEvents = function(canvas){
 	var c = document.getElementById(canvas);
-	c.oncontextmenu = function() {return false;}
+	c.oncontextmenu = function() {return false;};
 	c.onmousedown = events.click;
 	c.onmousemove = events.mousemove;
 	c.onmouseout = events.mouseout;   
 
-    }
+    };
 
     this.construct();
-}
+};
 
 // main ----------------------------------------------------------------------
 
 window.onload = function() {
     board = new Board(30, 16, 99, "canvas");
-}
+};
